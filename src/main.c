@@ -149,13 +149,23 @@ int main(void)
     // Use top-right button on 4x4 keypad (typically 'A') to toggle LED.
 
     InitializeKeypad();
+    InitializeKeypad_1();
     while (true)
     {
-        while (ReadKeypad() < 0);   // wait for a valid key
-        int key = ReadKeypad();
+        while (ReadKeypad() < 0 && ReadKeypad_1() < 0);   // wait for a valid key
+        // while (ReadKeypad_1() < 0);   // wait for a valid key
+        int key;
+        if (ReadKeypad() > 0) {
+            key = ReadKeypad();
+        } else if(ReadKeypad_1 > 0) {
+            key = ReadKeypad_1();
+        }
+        // int key = ReadKeypad();
+        // int key_1 = ReadKeypad_1();
         if (key == 3)  // top-right key in a 4x4 keypad, usually 'A'
             HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);   // toggle LED on or off
-         while (ReadKeypad() >= 0);  // wait until key is released
+         while (ReadKeypad() >= 0 && ReadKeypad_1() >= 0);  // wait until key is released
+        //  while (ReadKeypad_1() >= 0);  // wait until key is released
     }
 #endif
 
