@@ -26,6 +26,9 @@ void SetPWMDutyCycle(TIM_HandleTypeDef *timer, uint32_t channel, uint32_t value)
 void InitializeKeypad();
 int ReadKeypad();
 
+void InitializeKeypad_1();
+int ReadKeypad_1();
+
 void Initialize7Segment();
 void Display7Segment(int digit);
 

@@ -191,9 +191,9 @@ void SetPWMDutyCycle(TIM_HandleTypeDef *timer, uint32_t channel, uint32_t value)
     }
 }
 
-/////////////////////
-// Keypad Scanning //
-/////////////////////
+///////////////////////
+// Keypad Scanning 1 //
+///////////////////////
 
 struct { GPIO_TypeDef *port; uint32_t pin; }
 rows[] = {
@@ -226,6 +226,46 @@ int ReadKeypad() {
             HAL_GPIO_WritePin(rows[i].port, rows[i].pin, i == row);  // all low except the row we care about
         for (int col = 0; col < 4; ++col)  // check all the column pins to see if any are high
             if (HAL_GPIO_ReadPin(cols[col].port, cols[col].pin))
+                return row*4+col;
+    }
+    return -1;  // none of the keys were pressed
+}
+
+///////////////////////
+// Keypad Scanning 2 //
+///////////////////////
+
+struct { GPIO_TypeDef *port; uint32_t pin; }
+rows_1[] = {
+    { GPIOA, GPIO_PIN_7 },
+    { GPIOB, GPIO_PIN_6 },
+    { GPIOC, GPIO_PIN_0 },
+    { GPIOC, GPIO_PIN_1 }
+},
+cols_1[] = {
+    { GPIOB, GPIO_PIN_0 },
+    { GPIOA, GPIO_PIN_4 },
+    { GPIOA, GPIO_PIN_1 },
+    { GPIOA, GPIO_PIN_0 }
+};
+
+void InitializeKeypad_1() {
+    // rows are outputs, columns are inputs and are pulled low so they don't "float"
+    for (int i = 0; i < 4; ++i) {
+        InitializePin(rows_1[i].port, rows_1[i].pin, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
+        InitializePin(cols_1[i].port, cols_1[i].pin, GPIO_MODE_INPUT, GPIO_PULLDOWN, 0);
+     }
+}
+
+int ReadKeypad_1() {
+    // scan a 4x4 key matrix by applying a voltage to each row in succession and seeing which column is active
+    // (should work with a 4x3 matrix, since last column will just return zero)
+    for (int row = 0; row < 4; ++row) {
+        // enable the pin for (only) this row
+        for (int i = 0; i < 4; ++i)
+            HAL_GPIO_WritePin(rows_1[i].port, rows_1[i].pin, i == row);  // all low except the row we care about
+        for (int col = 0; col < 4; ++col)  // check all the column pins to see if any are high
+            if (HAL_GPIO_ReadPin(cols_1[col].port, cols_1[col].pin))
                 return row*4+col;
     }
     return -1;  // none of the keys were pressed

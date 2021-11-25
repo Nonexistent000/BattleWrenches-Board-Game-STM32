@@ -8,11 +8,12 @@
 // To run a particular example, you should remove the comment (//) in
 // front of exactly ONE of the following lines:
 
-#define BUTTON_BLINK
+// #define BUTTON_BLINK
 // #define LIGHT_SCHEDULER
 // #define TIME_RAND
 // #define KEYPAD
-// #define KEYPAD_CONTROL
+// #define KEYPAD_1
+ #define KEYPAD_CONTROL
 // #define SEVEN_SEGMENT
 // #define KEYPAD_SEVEN_SEGMENT
 // #define COLOR_LED
@@ -108,12 +109,30 @@ int main(void)
     }
 #endif
 
+#ifdef KEYPAD_1
+    // Read buttons on the keypad and display them on the console.
+
+    // this string contains the symbols on the external keypad
+    // (they may be different for different keypads)
+    char *keypad_symbols_1 = "123A456B789C*0#D";
+    // note that they're numbered from left to right and top to bottom, like reading words on a page
+
+    InitializeKeypad_1();
+    while (true)
+    {
+        while (ReadKeypad_1() < 0);   // wait for a valid key
+        SerialPutc(keypad_symbols_1[ReadKeypad_1()]);  // look up its ASCII symbol and send it to the hsot
+        while (ReadKeypad_1() >= 0);  // wait until key is released
+    }
+#endif
+
 #ifdef KEYPAD
     // Read buttons on the keypad and display them on the console.
 
     // this string contains the symbols on the external keypad
     // (they may be different for different keypads)
     char *keypad_symbols = "123A456B789C*0#D";
+    char *keypad_symbols_2 = "";
     // note that they're numbered from left to right and top to bottom, like reading words on a page
 
     InitializeKeypad();
@@ -124,6 +143,7 @@ int main(void)
         while (ReadKeypad() >= 0);  // wait until key is released
     }
 #endif
+
 
 #ifdef KEYPAD_CONTROL
     // Use top-right button on 4x4 keypad (typically 'A') to toggle LED.
