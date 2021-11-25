@@ -8,12 +8,13 @@
 // To run a particular example, you should remove the comment (//) in
 // front of exactly ONE of the following lines:
 
-// #define BUTTON_BLINK
+ #define BUTTON_BLINK
+ #define KEYPAD_USER_WRENCHES
 // #define LIGHT_SCHEDULER
 // #define TIME_RAND
 // #define KEYPAD
 // #define KEYPAD_1
- #define KEYPAD_CONTROL
+// #define KEYPAD_CONTROL
 // #define SEVEN_SEGMENT
 // #define KEYPAD_SEVEN_SEGMENT
 // #define COLOR_LED
@@ -30,7 +31,8 @@
 int main(void)
 {
     HAL_Init(); // initialize the Hardware Abstraction Layer
-
+    bool run = false;
+    char user_wrenches[8];
     // Peripherals (including GPIOs) are disabled by default to save power, so we
     // use the Reset and Clock Control registers to enable the GPIO peripherals that we're using.
 
@@ -55,18 +57,43 @@ int main(void)
 
 #ifdef BUTTON_BLINK
     // Wait for the user to push the blue button, then blink the LED.
-
+    
     // wait for button press (active low)
     while (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13))
     {
     }
-
-    while (1) // loop forever, blinking the LED
+    int i = 0;
+    while (i != 5) // loop forever, blinking the LED
     {
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-        HAL_Delay(250);  // 250 milliseconds == 1/4 second
+        HAL_Delay(500);  // 250 milliseconds == 1/4 second
+        i++;
     }
+    run = true;
 #endif
+
+#ifdef KEYPAD_USER_WRENCHES
+
+    if ((run) = true) {
+        char *keypad_symbols = "123A456B789C*0#D";
+        InitializeKeypad_1();
+        for (int index = 0; index < 8; index++) {
+            while (ReadKeypad_1() < 0);   // wait for a valid key
+            SerialPutc(keypad_symbols[ReadKeypad_1()]);  // look up its ASCII symbol and send it to the host
+            user_wrenches[index] = keypad_symbols[ReadKeypad_1()];
+            while (ReadKeypad_1() >= 0);  // wait until key is released
+        }
+        // for (int loop = 0; loop < 8; loop++) {
+        //     SerialPutc(*(user_wrenches + loop));
+        //     if (loop == 7) {
+        //         break;
+        //     }
+        // }
+        run = false;
+    }
+
+#endif
+
 
 #ifdef LIGHT_SCHEDULER
     // Turn on the LED five seconds after reset, and turn it off again five seconds later.
