@@ -9,12 +9,12 @@
 // front of exactly ONE of the following lines:
 
  #define BUTTON_BLINK
- #define KEYPAD_USER_WRENCHES
- #define COMPUTER_WRENCHES
- #define LIGHT_SCHEDULER
- #define ATT_DEF_MODE
- #define VICTORY
- #define LOSS
+// #define KEYPAD_USER_WRENCHES
+// #define COMPUTER_WRENCHES
+// #define LIGHT_SCHEDULER
+// #define ATT_DEF_MODE
+// #define VICTORY
+// #define LOSS
 // #define TIME_RAND
 // #define KEYPAD
 // #define KEYPAD_1
@@ -74,9 +74,10 @@ int main(void)
     {
     }
     int i = 0;
+    InitializePin(GPIOB, GPIO_PIN_8, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
     while (i != 5) // loop forever, blinking the LED
     {
-        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, false);
         HAL_Delay(500);  // 250 milliseconds == 1/4 second
         i++;
     }
@@ -206,40 +207,51 @@ int main(void)
             count_u = 0;
             count_c = 0;
             if (attack == true) {
-                SerialPutc('A');
+                HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_8);
                 guess = keypad_symbols[rand()%15];
                 for (int index = 0; index < 8; index++) {
                     if (guess == user_wrenches[index]) {
-                        user_wrenches[index] = NULL;
+                        user_wrenches[index] = '|';
                         success = true;
                         break;
                     }
                 }
                 if (success == false) {
-                    success = false;
+                    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
+                    HAL_Delay(2000);
+                } else if (success == true) {
+                    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+                    HAL_Delay(2000);
                 }
+                HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_8);
             } else if (defense == true) {
-                SerialPutc('D');
+                HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_6);
                 InitializeKeypad();
                 while (ReadKeypad_1() < 0);   // wait for a valid key
                 guess = keypad_symbols[ReadKeypad_1()];
                 while (ReadKeypad_1() >= 0);  // wait until key is released
                 for (int index = 0; index < 8; index++) {
                     if (guess == comp_wrenches[index]) {
-                        comp_wrenches[index] = NULL;
+                        comp_wrenches[index] = '|';
                         success = true;
                         break;
                     }
                 }
                 if (success == false) {
-                    success = false;
+                    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
+                    HAL_Delay(2000);
+                } else if (success == true) {
+                    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+                    HAL_Delay(2000);
                 }
+                HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_6);
             }
+
             for (int count = 0; count < 8; count++) {
-                if (NULL == user_wrenches[count]) {
+                if ('|' == user_wrenches[count]) {
                     count_u += 1;
                 }
-                if (NULL == comp_wrenches[count]) {
+                if ('|'== comp_wrenches[count]) {
                     count_c += 1;
                 }
             }
@@ -256,7 +268,6 @@ int main(void)
 
 #ifdef VICTORY
     if (win == true) {
-        win = true;
         while (i != 5) // loop forever, blinking the LED
         {
             HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
@@ -270,7 +281,6 @@ int main(void)
 
 #ifdef LOSS
     if (lose == true) {
-        lose= true;
         while (i != 5) // loop forever, blinking the LED
         {
             HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
