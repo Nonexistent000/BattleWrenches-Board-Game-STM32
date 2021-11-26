@@ -10,7 +10,11 @@
 
  #define BUTTON_BLINK
  #define KEYPAD_USER_WRENCHES
-// #define LIGHT_SCHEDULER
+ #define COMPUTER_WRENCHES
+ #define LIGHT_SCHEDULER
+ #define ATT_DEF_MODE
+// #define VICTORY
+// #define LOSS
 // #define TIME_RAND
 // #define KEYPAD
 // #define KEYPAD_1
@@ -28,11 +32,18 @@
 
 #include "ece198.h"
 
+int rand_lim(int limit);
+
 int main(void)
 {
     HAL_Init(); // initialize the Hardware Abstraction Layer
     bool run = false;
+    bool blink = false;
+    bool att_def_mode = false;
+    bool win = false;
+    bool lose = false;
     char user_wrenches[8];
+    char comp_wrenches[8];
     // Peripherals (including GPIOs) are disabled by default to save power, so we
     // use the Reset and Clock Control registers to enable the GPIO peripherals that we're using.
 
@@ -83,27 +94,69 @@ int main(void)
             user_wrenches[index] = keypad_symbols[ReadKeypad_1()];
             while (ReadKeypad_1() >= 0);  // wait until key is released
         }
-        // for (int loop = 0; loop < 8; loop++) {
-        //     SerialPutc(*(user_wrenches + loop));
-        //     if (loop == 7) {
-        //         break;
-        //     }
-        // }
+        SerialPutc(*(user_wrenches));
+        SerialPutc(*(user_wrenches + 1));
+        SerialPutc(*(user_wrenches + 2));
+        SerialPutc(*(user_wrenches + 3));
+        SerialPutc(*(user_wrenches + 4));
+        SerialPutc(*(user_wrenches + 5));
+        SerialPutc(*(user_wrenches + 6));
+        SerialPutc(*(user_wrenches + 7));
         run = false;
     }
 
 #endif
 
+#ifdef COMPUTER_WRENCHES
+    if (run = true) {
+       
+        bool no_repeating = false;
+        bool in_array = false;
+        char *keypad_symbols = "123A456B789C*0#D";
+        char choose;
+        srand(HAL_GetTick());
+        for (int index = 0; index < 8; index++) {
+            no_repeating = false;
+            while (no_repeating == false) {
+                in_array = false;
+                choose = keypad_symbols[rand()%15];
+                for (int loop = 0; loop < 8; loop++) {
+                    if(choose == comp_wrenches[loop]) {
+                        in_array = true;
+                        break;
+                    }
+                    if(in_array == false && loop == 7){
+                        no_repeating = true;
+                        break;
+                    }
+                }
+            }
+            comp_wrenches[index] =  choose;
+        }
+        SerialPutc(*(comp_wrenches));
+        SerialPutc(*(comp_wrenches + 1));
+        SerialPutc(*(comp_wrenches + 2));
+        SerialPutc(*(comp_wrenches + 3));
+        SerialPutc(*(comp_wrenches + 4));
+        SerialPutc(*(comp_wrenches + 5));
+        SerialPutc(*(comp_wrenches + 6));
+        SerialPutc(*(comp_wrenches + 7));
+        run = false;
+    }
+    blink = true;
+
+#endif
 
 #ifdef LIGHT_SCHEDULER
     // Turn on the LED five seconds after reset, and turn it off again five seconds later.
 
-    while (true) {
-        uint32_t now = HAL_GetTick();
-        if (now > 5000 && now < 10000)
-            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, true);   // turn on LED
-        else
-            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);  // turn off LED
+    while (blink == true) {
+        HAL_DELAY(1500);
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);   // turn on LED
+        HAL_Delay(3000);
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, true);  // turn off LED
+        att_def_mode = true;
+        blink = false;
     }
 #endif
 
@@ -135,6 +188,104 @@ int main(void)
         while (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));  // wait for button to be released
     }
 #endif
+
+
+#ifdef ATT_DEF_MODE
+    if (att_def_mode == true) {
+        bool attack = false;
+        bool defense = true;
+        bool success = false;
+        int count_u = 0;
+        int count_c = 0;
+        int guess;
+        char *keypad_symbols = "123A456B789C*0#D";
+        while (att_def_mode == true) {
+            attack = !attack;
+            defense = !defense;
+            success = false;
+            count_u = 0;
+            count_c = 0;
+            if (attack == true) {
+                SerialPutc('A');
+                guess = keypad_symbols[rand()%15];
+                for (int index = 0; index < 8; index++) {
+                    if (guess == user_wrenches[index]) {
+                        user_wrenches[index] = NULL;
+                        success = true;
+                        break;
+                    }
+                }
+                if (success == false) {
+                    success = false;
+                }
+            } else if (defense == true) {
+                SerialPutc('D');
+                InitializeKeypad();
+                while (ReadKeypad_1() < 0);   // wait for a valid key
+                guess = keypad_symbols[ReadKeypad_1()];
+                while (ReadKeypad_1() >= 0);  // wait until key is released
+                for (int index = 0; index < 8; index++) {
+                    if (guess == comp_wrenches[index]) {
+                        comp_wrenches[index] = NULL;
+                        success = true;
+                        break;
+                    }
+                }
+                if (success == false) {
+                    success = false;
+                }
+            }
+            for (int count = 0; count < 8; count++) {
+                if (NULL == user_wrenches[count]) {
+                    count_u += 1;
+                }
+                if (NULL == comp_wrenches[count]) {
+                    count_c += 1;
+                }
+            }
+            if (count_u == 8) {
+                lose = true;
+                att_def_mode = false;
+            } else if (count_c == 8) {
+                win = true;
+                att_def_mode = false;
+            }
+        }
+    }
+#endif
+
+#ifdef VICTORY
+    if (win == true) {
+        win = true;
+        while (i != 5) // loop forever, blinking the LED
+        {
+            HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+            HAL_Delay(500);  // 250 milliseconds == 1/4 second
+            i++;
+        }
+        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+        win = false;
+    }
+#endif
+
+#ifdef LOSS
+    if (lose == true) {
+        lose = true;
+        while (i != 5) // loop forever, blinking the LED
+        {
+            HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+            HAL_Delay(500);  // 250 milliseconds == 1/4 second
+            i++;
+        }
+        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+        win = false;
+    }
+#endif
+
+
+
+
+
 
 #ifdef KEYPAD_1
     // Read buttons on the keypad and display them on the console.
