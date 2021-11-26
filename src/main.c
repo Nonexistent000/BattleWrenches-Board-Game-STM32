@@ -9,12 +9,12 @@
 // front of exactly ONE of the following lines:
 
  #define BUTTON_BLINK
-// #define KEYPAD_USER_WRENCHES
-// #define COMPUTER_WRENCHES
-// #define LIGHT_SCHEDULER
-// #define ATT_DEF_MODE
-// #define VICTORY
-// #define LOSS
+ #define KEYPAD_USER_WRENCHES
+ #define COMPUTER_WRENCHES
+ #define LIGHT_SCHEDULER
+ #define ATT_DEF_MODE
+ #define VICTORY
+ #define LOSS
 // #define TIME_RAND
 // #define KEYPAD
 // #define KEYPAD_1
@@ -54,6 +54,9 @@ int main(void)
     // initialize the pins to be input, output, alternate function, etc...
 
     InitializePin(GPIOA, GPIO_PIN_5, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);  // on-board LED
+    InitializePin(GPIOB, GPIO_PIN_8, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
+    InitializePin(GPIOB, GPIO_PIN_9, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
+    InitializePin(GPIOA, GPIO_PIN_6, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
 
     // note: the on-board pushbutton is fine with the default values (no internal pull-up resistor
     // is required, since there's one on the board)
@@ -74,10 +77,9 @@ int main(void)
     {
     }
     int i = 0;
-    InitializePin(GPIOB, GPIO_PIN_8, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
     while (i != 5) // loop forever, blinking the LED
     {
-        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, false);
+        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
         HAL_Delay(500);  // 250 milliseconds == 1/4 second
         i++;
     }
@@ -87,13 +89,31 @@ int main(void)
 #ifdef KEYPAD_USER_WRENCHES
 
     if ((run) = true) {
+        bool no_repeating = false;
+        bool in_array = false;
         char *keypad_symbols = "123A456B789C*0#D";
         InitializeKeypad_1();
+        char choose;
         for (int index = 0; index < 8; index++) {
-            while (ReadKeypad_1() < 0);   // wait for a valid key
-            SerialPutc(keypad_symbols[ReadKeypad_1()]);  // look up its ASCII symbol and send it to the host
-            user_wrenches[index] = keypad_symbols[ReadKeypad_1()];
-            while (ReadKeypad_1() >= 0);  // wait until key is released
+            no_repeating = false;
+            while (no_repeating == false) {
+                in_array = false;
+                while (ReadKeypad_1() < 0);   // wait for a valid key
+                SerialPutc(keypad_symbols[ReadKeypad_1()]);  // look up its ASCII symbol and send it to the host
+                choose = keypad_symbols[ReadKeypad_1()];
+                while (ReadKeypad_1() >= 0);  // wait until key is released
+                for (int loop = 0; loop < 8; loop++) {
+                    if(choose == user_wrenches[loop]) {
+                        in_array = true;
+                        break;
+                    }
+                    if(in_array == false && loop == 7){
+                        no_repeating = true;
+                        break;
+                    }
+                }
+            }
+            user_wrenches[index] = choose;
         }
         SerialPutc(*(user_wrenches));
         SerialPutc(*(user_wrenches + 1));
@@ -156,6 +176,8 @@ int main(void)
         HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);   // turn on LED
         HAL_Delay(3000);
         HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, true);  // turn off LED
+        HAL_Delay(1500);
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);
         att_def_mode = true;
         blink = false;
     }
@@ -207,7 +229,7 @@ int main(void)
             count_u = 0;
             count_c = 0;
             if (attack == true) {
-                HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_8);
+                HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, true);
                 guess = keypad_symbols[rand()%15];
                 for (int index = 0; index < 8; index++) {
                     if (guess == user_wrenches[index]) {
@@ -217,19 +239,21 @@ int main(void)
                     }
                 }
                 if (success == false) {
-                    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
+                    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, true);
                     HAL_Delay(2000);
+                    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, false);
                 } else if (success == true) {
-                    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+                    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, true);
                     HAL_Delay(2000);
+                    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);
                 }
-                HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_8);
+                HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, false);
             } else if (defense == true) {
-                HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_6);
+                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, true);
                 InitializeKeypad();
-                while (ReadKeypad_1() < 0);   // wait for a valid key
-                guess = keypad_symbols[ReadKeypad_1()];
-                while (ReadKeypad_1() >= 0);  // wait until key is released
+                while (ReadKeypad() < 0);   // wait for a valid key
+                guess = keypad_symbols[ReadKeypad()];
+                while (ReadKeypad() >= 0);  // wait until key is released
                 for (int index = 0; index < 8; index++) {
                     if (guess == comp_wrenches[index]) {
                         comp_wrenches[index] = '|';
@@ -238,13 +262,15 @@ int main(void)
                     }
                 }
                 if (success == false) {
-                    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
+                    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9,true);
                     HAL_Delay(2000);
+                    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, false);
                 } else if (success == true) {
-                    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+                    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, true);
                     HAL_Delay(2000);
+                    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);
                 }
-                HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_6);
+                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, false);
             }
 
             for (int count = 0; count < 8; count++) {
