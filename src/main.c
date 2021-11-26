@@ -10,6 +10,8 @@
 
  #define BUTTON_BLINK
  #define KEYPAD_USER_WRENCHES
+ #define COMPUTER_WRENCHES
+ #define LIGHT_SCHEDULER
 // #define LIGHT_SCHEDULER
 // #define TIME_RAND
 // #define KEYPAD
@@ -93,7 +95,57 @@ int main(void)
     }
 
 #endif
+#ifdef COMPUTER_WRENCHES
+    if (run = true) {
 
+        bool no_repeating = false;
+        bool in_array = false;
+        char keypad_symbols = "123A456B789C0#D";
+        char choose;
+        srand(HAL_GetTick());
+        for (int index = 0; index < 8; index++) {
+            no_repeating = false;
+            while (no_repeating == false) {
+                in_array = false;
+                choose = keypad_symbols[rand()%15];
+                for (int loop = 0; loop < 8; loop++) {
+                    if(choose == comp_wrenches[loop]) {
+                        in_array = true;
+                        break;
+                    }
+                    if(in_array == false && loop == 7){
+                        no_repeating = true;
+                        break;
+                    }
+                }
+            }
+            comp_wrenches[index] =  choose;
+        }
+        SerialPutc((comp_wrenches));
+        SerialPutc((comp_wrenches + 1));
+        SerialPutc((comp_wrenches + 2));
+        SerialPutc((comp_wrenches + 3));
+        SerialPutc((comp_wrenches + 4));
+        SerialPutc((comp_wrenches + 5));
+        SerialPutc((comp_wrenches + 6));
+        SerialPutc((comp_wrenches + 7));
+        run = false;
+    }
+    blink = true;
+#endif
+
+#ifdef LIGHT_SCHEDULER
+    // Turn on the LED five seconds after reset, and turn it off again five seconds later.
+
+    while (blink == true) {
+        HAL_DELAY(1500);
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);   // turn on LED
+        HAL_Delay(3000);
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, true);  // turn off LED
+        att_def_mode = true;
+        blink = false;
+    }
+#endif
 
 #ifdef LIGHT_SCHEDULER
     // Turn on the LED five seconds after reset, and turn it off again five seconds later.
