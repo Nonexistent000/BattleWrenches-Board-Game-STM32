@@ -8,13 +8,13 @@
 // To run a particular example, you should remove the comment (//) in
 // front of exactly ONE of the following lines:
 
- #define BUTTON_BLINK
-// #define KEYPAD_USER_WRENCHES
-// #define COMPUTER_WRENCHES
-// #define LIGHT_SCHEDULER
-// #define ATT_DEF_MODE
-// #define VICTORY
-// #define LOSS
+#define BUTTON_BLINK
+#define KEYPAD_USER_WRENCHES
+#define COMPUTER_WRENCHES
+#define LIGHT_SCHEDULER
+#define ATT_DEF_MODE
+#define VICTORY
+#define LOSS
 // #define TIME_RAND
 // #define KEYPAD
 // #define KEYPAD_1
@@ -53,7 +53,10 @@ int main(void)
 
     // initialize the pins to be input, output, alternate function, etc...
 
-    InitializePin(GPIOA, GPIO_PIN_5, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);  // on-board LED
+    InitializePin(GPIOA, GPIO_PIN_5, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0); // on-board LED
+    InitializePin(GPIOB, GPIO_PIN_8, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
+    InitializePin(GPIOB, GPIO_PIN_9, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
+    InitializePin(GPIOA, GPIO_PIN_6, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
 
     // note: the on-board pushbutton is fine with the default values (no internal pull-up resistor
     // is required, since there's one on the board)
@@ -68,17 +71,16 @@ int main(void)
 
 #ifdef BUTTON_BLINK
     // Wait for the user to push the blue button, then blink the LED.
-    
+
     // wait for button press (active low)
     while (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13))
     {
     }
     int i = 0;
-    InitializePin(GPIOB, GPIO_PIN_8, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
     while (i != 5) // loop forever, blinking the LED
     {
-        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, false);
-        HAL_Delay(500);  // 250 milliseconds == 1/4 second
+        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+        HAL_Delay(500); // 250 milliseconds == 1/4 second
         i++;
     }
     run = true;
@@ -86,14 +88,40 @@ int main(void)
 
 #ifdef KEYPAD_USER_WRENCHES
 
-    if ((run) = true) {
+    if ((run) = true)
+    {
+        bool no_repeating = false;
+        bool in_array = false;
         char *keypad_symbols = "123A456B789C*0#D";
         InitializeKeypad_1();
-        for (int index = 0; index < 8; index++) {
-            while (ReadKeypad_1() < 0);   // wait for a valid key
-            SerialPutc(keypad_symbols[ReadKeypad_1()]);  // look up its ASCII symbol and send it to the host
-            user_wrenches[index] = keypad_symbols[ReadKeypad_1()];
-            while (ReadKeypad_1() >= 0);  // wait until key is released
+        char choose;
+        for (int index = 0; index < 8; index++)
+        {
+            no_repeating = false;
+            while (no_repeating == false)
+            {
+                in_array = false;
+                while (ReadKeypad_1() < 0)
+                    ;                                       // wait for a valid key
+                SerialPutc(keypad_symbols[ReadKeypad_1()]); // look up its ASCII symbol and send it to the host
+                choose = keypad_symbols[ReadKeypad_1()];
+                while (ReadKeypad_1() >= 0)
+                    ; // wait until key is released
+                for (int loop = 0; loop < 8; loop++)
+                {
+                    if (choose == user_wrenches[loop])
+                    {
+                        in_array = true;
+                        break;
+                    }
+                    if (in_array == false && loop == 7)
+                    {
+                        no_repeating = true;
+                        break;
+                    }
+                }
+            }
+            user_wrenches[index] = choose;
         }
         SerialPutc(*(user_wrenches));
         SerialPutc(*(user_wrenches + 1));
@@ -109,30 +137,36 @@ int main(void)
 #endif
 
 #ifdef COMPUTER_WRENCHES
-    if (run = true) {
-       
+    if (run = true)
+    {
+
         bool no_repeating = false;
         bool in_array = false;
         char *keypad_symbols = "123A456B789C*0#D";
         char choose;
         srand(HAL_GetTick());
-        for (int index = 0; index < 8; index++) {
+        for (int index = 0; index < 8; index++)
+        {
             no_repeating = false;
-            while (no_repeating == false) {
+            while (no_repeating == false)
+            {
                 in_array = false;
-                choose = keypad_symbols[rand()%15];
-                for (int loop = 0; loop < 8; loop++) {
-                    if(choose == comp_wrenches[loop]) {
+                choose = keypad_symbols[rand() % 15];
+                for (int loop = 0; loop < 8; loop++)
+                {
+                    if (choose == comp_wrenches[loop])
+                    {
                         in_array = true;
                         break;
                     }
-                    if(in_array == false && loop == 7){
+                    if (in_array == false && loop == 7)
+                    {
                         no_repeating = true;
                         break;
                     }
                 }
             }
-            comp_wrenches[index] =  choose;
+            comp_wrenches[index] = choose;
         }
         SerialPutc(*(comp_wrenches));
         SerialPutc(*(comp_wrenches + 1));
@@ -151,11 +185,14 @@ int main(void)
 #ifdef LIGHT_SCHEDULER
     // Turn on the LED five seconds after reset, and turn it off again five seconds later.
 
-    while (blink == true) {
+    while (blink == true)
+    {
         HAL_Delay(1500);
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);   // turn on LED
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false); // turn on LED
         HAL_Delay(3000);
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, true);  // turn off LED
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, true); // turn off LED
+        HAL_Delay(1500);
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);
         att_def_mode = true;
         blink = false;
     }
@@ -164,7 +201,7 @@ int main(void)
 #ifdef TIME_RAND
     // This illustrates the use of HAL_GetTick() to get the current time,
     // plus the use of random() for random number generation.
-    
+
     // Note that you must have "#include <stdlib.h>"" at the top of your main.c
     // in order to use the srand() and random() functions.
 
@@ -175,7 +212,8 @@ int main(void)
 
     while (true) // loop forever
     {
-        while (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));  // wait for button press
+        while (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13))
+            ; // wait for button press
 
         // Display the time in milliseconds along with a random number.
         // We use the sprintf() function to put the formatted output into a buffer;
@@ -186,13 +224,14 @@ int main(void)
         // lu == "long unsigned", ld = "long decimal", where "long" is 32 bit and "decimal" implies signed
         SerialPuts(buff); // transmit the buffer to the host computer's serial monitor in VSCode/PlatformIO
 
-        while (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));  // wait for button to be released
+        while (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13))
+            ; // wait for button to be released
     }
 #endif
 
-
 #ifdef ATT_DEF_MODE
-    if (att_def_mode == true) {
+    if (att_def_mode == true)
+    {
         bool attack = false;
         bool defense = true;
         bool success = false;
@@ -200,65 +239,91 @@ int main(void)
         int count_c = 0;
         int guess;
         char *keypad_symbols = "123A456B789C*0#D";
-        while (att_def_mode == true) {
+        while (att_def_mode == true)
+        {
             attack = !attack;
             defense = !defense;
             success = false;
             count_u = 0;
             count_c = 0;
-            if (attack == true) {
-                HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_8);
-                guess = keypad_symbols[rand()%15];
-                for (int index = 0; index < 8; index++) {
-                    if (guess == user_wrenches[index]) {
+            if (attack == true)
+            {
+                HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, true);
+                guess = keypad_symbols[rand() % 15];
+                for (int index = 0; index < 8; index++)
+                {
+                    if (guess == user_wrenches[index])
+                    {
                         user_wrenches[index] = '|';
                         success = true;
                         break;
                     }
                 }
-                if (success == false) {
-                    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
+                if (success == false)
+                {
+                    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, true);
                     HAL_Delay(2000);
-                } else if (success == true) {
-                    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-                    HAL_Delay(2000);
+                    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, false);
                 }
-                HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_8);
-            } else if (defense == true) {
-                HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_6);
+                else if (success == true)
+                {
+                    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, true);
+                    HAL_Delay(2000);
+                    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);
+                }
+                HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, false);
+            }
+            else if (defense == true)
+            {
+                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, true);
                 InitializeKeypad();
-                while (ReadKeypad_1() < 0);   // wait for a valid key
-                guess = keypad_symbols[ReadKeypad_1()];
-                while (ReadKeypad_1() >= 0);  // wait until key is released
-                for (int index = 0; index < 8; index++) {
-                    if (guess == comp_wrenches[index]) {
+                while (ReadKeypad() < 0)
+                    ; // wait for a valid key
+                guess = keypad_symbols[ReadKeypad()];
+                while (ReadKeypad() >= 0)
+                    ; // wait until key is released
+                for (int index = 0; index < 8; index++)
+                {
+                    if (guess == comp_wrenches[index])
+                    {
                         comp_wrenches[index] = '|';
                         success = true;
                         break;
                     }
                 }
-                if (success == false) {
-                    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
+                if (success == false)
+                {
+                    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, true);
                     HAL_Delay(2000);
-                } else if (success == true) {
-                    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-                    HAL_Delay(2000);
+                    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, false);
                 }
-                HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_6);
+                else if (success == true)
+                {
+                    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, true);
+                    HAL_Delay(2000);
+                    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);
+                }
+                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, false);
             }
 
-            for (int count = 0; count < 8; count++) {
-                if ('|' == user_wrenches[count]) {
+            for (int count = 0; count < 8; count++)
+            {
+                if ('|' == user_wrenches[count])
+                {
                     count_u += 1;
                 }
-                if ('|'== comp_wrenches[count]) {
+                if ('|' == comp_wrenches[count])
+                {
                     count_c += 1;
                 }
             }
-            if (count_u == 8) {
+            if (count_u == 8)
+            {
                 lose = true;
                 att_def_mode = false;
-            } else if (count_c == 8) {
+            }
+            else if (count_c == 8)
+            {
                 win = true;
                 att_def_mode = false;
             }
@@ -267,11 +332,12 @@ int main(void)
 #endif
 
 #ifdef VICTORY
-    if (win == true) {
+    if (win == true)
+    {
         while (i != 5) // loop forever, blinking the LED
         {
             HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-            HAL_Delay(500);  // 250 milliseconds == 1/4 second
+            HAL_Delay(500); // 250 milliseconds == 1/4 second
             i++;
         }
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
@@ -280,22 +346,18 @@ int main(void)
 #endif
 
 #ifdef LOSS
-    if (lose == true) {
+    if (lose == true)
+    {
         while (i != 5) // loop forever, blinking the LED
         {
             HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-            HAL_Delay(500);  // 250 milliseconds == 1/4 second
+            HAL_Delay(500); // 250 milliseconds == 1/4 second
             i++;
         }
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
         win = false;
     }
 #endif
-
-
-
-
-
 
 #ifdef KEYPAD_1
     // Read buttons on the keypad and display them on the console.
@@ -308,9 +370,11 @@ int main(void)
     InitializeKeypad_1();
     while (true)
     {
-        while (ReadKeypad_1() < 0);   // wait for a valid key
-        SerialPutc(keypad_symbols_1[ReadKeypad_1()]);  // look up its ASCII symbol and send it to the hsot
-        while (ReadKeypad_1() >= 0);  // wait until key is released
+        while (ReadKeypad_1() < 0)
+            ;                                         // wait for a valid key
+        SerialPutc(keypad_symbols_1[ReadKeypad_1()]); // look up its ASCII symbol and send it to the hsot
+        while (ReadKeypad_1() >= 0)
+            ; // wait until key is released
     }
 #endif
 
@@ -326,12 +390,13 @@ int main(void)
     InitializeKeypad();
     while (true)
     {
-        while (ReadKeypad() < 0);   // wait for a valid key
-        SerialPutc(keypad_symbols[ReadKeypad()]);  // look up its ASCII symbol and send it to the hsot
-        while (ReadKeypad() >= 0);  // wait until key is released
+        while (ReadKeypad() < 0)
+            ;                                     // wait for a valid key
+        SerialPutc(keypad_symbols[ReadKeypad()]); // look up its ASCII symbol and send it to the hsot
+        while (ReadKeypad() >= 0)
+            ; // wait until key is released
     }
 #endif
-
 
 #ifdef KEYPAD_CONTROL
     // Use top-right button on 4x4 keypad (typically 'A') to toggle LED.
@@ -340,19 +405,24 @@ int main(void)
     InitializeKeypad_1();
     while (true)
     {
-        while (ReadKeypad() < 0 && ReadKeypad_1() < 0);   // wait for a valid key
+        while (ReadKeypad() < 0 && ReadKeypad_1() < 0)
+            ; // wait for a valid key
         // while (ReadKeypad_1() < 0);   // wait for a valid key
         int key;
-        if (ReadKeypad() > 0) {
+        if (ReadKeypad() > 0)
+        {
             key = ReadKeypad();
-        } else if(ReadKeypad_1 > 0) {
+        }
+        else if (ReadKeypad_1 > 0)
+        {
             key = ReadKeypad_1();
         }
         // int key = ReadKeypad();
         // int key_1 = ReadKeypad_1();
-        if (key == 3)  // top-right key in a 4x4 keypad, usually 'A'
-            HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);   // toggle LED on or off
-         while (ReadKeypad() >= 0 && ReadKeypad_1() >= 0);  // wait until key is released
+        if (key == 3)                              // top-right key in a 4x4 keypad, usually 'A'
+            HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5); // toggle LED on or off
+        while (ReadKeypad() >= 0 && ReadKeypad_1() >= 0)
+            ; // wait until key is released
         //  while (ReadKeypad_1() >= 0);  // wait until key is released
     }
 #endif
@@ -360,13 +430,13 @@ int main(void)
 #ifdef SEVEN_SEGMENT
     // Display the numbers 0 to 9 inclusive on the 7-segment display, pausing for a second between each one.
     // (remember that the GND connection on the display must go through a 220 ohm current-limiting resistor!)
-    
+
     Initialize7Segment();
     while (true)
         for (int i = 0; i < 10; ++i)
         {
             Display7Segment(i);
-            HAL_Delay(1000);  // 1000 milliseconds == 1 second
+            HAL_Delay(1000); // 1000 milliseconds == 1 second
         }
 #endif
 
@@ -384,7 +454,7 @@ int main(void)
     {
         int key = ReadKeypad();
         if (key >= 0)
-            Display7Segment(keypad_symbols[key]-'0');  // tricky code to convert ASCII digit to a number
+            Display7Segment(keypad_symbols[key] - '0'); // tricky code to convert ASCII digit to a number
     }
 #endif
 
@@ -395,16 +465,20 @@ int main(void)
     // Remember that each of those three pins must go through a 220 ohm current-limiting resistor!
     // Also remember that the longest pin on the LED should be hooked up to GND.
 
-    InitializePin(GPIOA, GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);  // initialize color LED output pins
-    while (true) {
-        for (int color = 0; color < 8; ++color) {
+    InitializePin(GPIOA, GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0); // initialize color LED output pins
+    while (true)
+    {
+        for (int color = 0; color < 8; ++color)
+        {
             // bottom three bits indicate which of the three LEDs should be on (eight possible combinations)
-            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, color & 0x01);  // blue  (hex 1 == 0001 binary)
-            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, color & 0x02);  // green (hex 2 == 0010 binary)
-            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, color & 0x04);  // red   (hex 4 == 0100 binary)
+            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, color & 0x01); // blue  (hex 1 == 0001 binary)
+            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, color & 0x02); // green (hex 2 == 0010 binary)
+            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, color & 0x04); // red   (hex 4 == 0100 binary)
 
-            while (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));   // wait for button press 
-            while (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));  // wait for button release
+            while (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13))
+                ; // wait for button press
+            while (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13))
+                ; // wait for button release
         }
     }
 #endif
@@ -412,36 +486,37 @@ int main(void)
 #ifdef ROTARY_ENCODER
     // Read values from the rotary encoder and update a count, which is displayed in the console.
 
-    InitializePin(GPIOB, GPIO_PIN_5, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
-    InitializePin(GPIOB, GPIO_PIN_4, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
-    InitializePin(GPIOB, GPIO_PIN_10, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
-    
-    bool previousClk = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
-    int count = 0;             // this gets incremented or decremented as we rotate the encoder
+    InitializePin(GPIOB, GPIO_PIN_5, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize CLK pin
+    InitializePin(GPIOB, GPIO_PIN_4, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize DT pin
+    InitializePin(GPIOB, GPIO_PIN_10, GPIO_MODE_INPUT, GPIO_PULLUP, 0); // initialize SW pin
+
+    bool previousClk = false; // needed by ReadEncoder() to store the previous state of the CLK pin
+    int count = 0;            // this gets incremented or decremented as we rotate the encoder
 
     while (true)
     {
-        int delta = ReadEncoder(GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_4, &previousClk);  // update the count by -1, 0 or +1
-        if (delta != 0) {
+        int delta = ReadEncoder(GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_4, &previousClk); // update the count by -1, 0 or +1
+        if (delta != 0)
+        {
             count += delta;
             char buff[100];
             sprintf(buff, "%d  \r", count);
             SerialPuts(buff);
         }
-        bool sw = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10);  // read the push-switch on the encoder (active low, so we invert it using !)
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, sw);  // turn on LED when encoder switch is pushed in
+        bool sw = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10); // read the push-switch on the encoder (active low, so we invert it using !)
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, sw);        // turn on LED when encoder switch is pushed in
     }
 #endif
 
 #ifdef ANALOG
     // Use the ADC (Analog to Digital Converter) to read voltage values from two pins.
 
-    __HAL_RCC_ADC1_CLK_ENABLE();        // enable ADC 1
-    ADC_HandleTypeDef adcInstance;      // this variable stores an instance of the ADC
-    InitializeADC(&adcInstance, ADC1);  // initialize the ADC instance
+    __HAL_RCC_ADC1_CLK_ENABLE();       // enable ADC 1
+    ADC_HandleTypeDef adcInstance;     // this variable stores an instance of the ADC
+    InitializeADC(&adcInstance, ADC1); // initialize the ADC instance
     // Enables the input pins
     // (on this board, pin A0 is connected to channel 0 of ADC1, and A1 is connected to channel 1 of ADC1)
-    InitializePin(GPIOA, GPIO_PIN_0 | GPIO_PIN_1, GPIO_MODE_ANALOG, GPIO_NOPULL, 0);   
+    InitializePin(GPIOA, GPIO_PIN_0 | GPIO_PIN_1, GPIO_MODE_ANALOG, GPIO_NOPULL, 0);
     while (true)
     {
         // read the ADC values (0 -> 0V, 2^12 -> 3.3V)
@@ -450,7 +525,7 @@ int main(void)
 
         // print the ADC values
         char buff[100];
-        sprintf(buff, "Channel0: %hu, Channel1: %hu\r\n", raw0, raw1);  // hu == "unsigned short" (16 bit)
+        sprintf(buff, "Channel0: %hu, Channel1: %hu\r\n", raw0, raw1); // hu == "unsigned short" (16 bit)
         SerialPuts(buff);
     }
 #endif
@@ -459,10 +534,10 @@ int main(void)
     // Use Pulse Width Modulation to fade the LED in and out.
     uint16_t period = 100, prescale = 16;
 
-    __TIM2_CLK_ENABLE();  // enable timer 2
-    TIM_HandleTypeDef pwmTimerInstance;  // this variable stores an instance of the timer
-    InitializePWMTimer(&pwmTimerInstance, TIM2, period, prescale);   // initialize the timer instance
-    InitializePWMChannel(&pwmTimerInstance, TIM_CHANNEL_1);          // initialize one channel (can use others for motors, etc)
+    __TIM2_CLK_ENABLE();                                           // enable timer 2
+    TIM_HandleTypeDef pwmTimerInstance;                            // this variable stores an instance of the timer
+    InitializePWMTimer(&pwmTimerInstance, TIM2, period, prescale); // initialize the timer instance
+    InitializePWMChannel(&pwmTimerInstance, TIM_CHANNEL_1);        // initialize one channel (can use others for motors, etc)
 
     InitializePin(GPIOA, GPIO_PIN_5, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_AF1_TIM2); // connect the LED to the timer output
 
