@@ -53,11 +53,7 @@ int main(void)
 
     // initialize the pins to be input, output, alternate function, etc...
 
-<<<<<<< HEAD
     InitializePin(GPIOA, GPIO_PIN_5, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);  // on-board LED
-=======
-    InitializePin(GPIOA, GPIO_PIN_5, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0); // on-board LED
->>>>>>> f021cb88290bbd26326e3cff5077bf7bf997d96f
     InitializePin(GPIOB, GPIO_PIN_8, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
     InitializePin(GPIOB, GPIO_PIN_9, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
     InitializePin(GPIOA, GPIO_PIN_6, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
@@ -253,14 +249,17 @@ int main(void)
                     }
                 }
                 if (success == false) {
+                    HAL_Delay(2500);
                     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, true);
                     HAL_Delay(2000);
                     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, false);
                 } else if (success == true) {
+                    HAL_Delay(2500);
                     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, true);
                     HAL_Delay(2000);
                     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);
                 }
+                HAL_Delay(1500);
                 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, false);
             } else if (defense == true) {
                 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, true);
@@ -276,14 +275,17 @@ int main(void)
                     }
                 }
                 if (success == false) {
+                    HAL_Delay(2500);
                     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9,true);
                     HAL_Delay(2000);
                     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, false);
                 } else if (success == true) {
+                    HAL_Delay(2500);
                     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, true);
                     HAL_Delay(2000);
                     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);
                 }
+                HAL_Delay(1500);
                 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, false);
             }
 
@@ -315,28 +317,30 @@ int main(void)
 #ifdef VICTORY
     if (win == true)
     {
-        while (i != 5) // loop forever, blinking the LED
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, false);
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);
+        
+        while (1) // loop forever, blinking the LED
         {
             HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+            HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_6);
             HAL_Delay(500); // 250 milliseconds == 1/4 second
-            i++;
         }
-        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-        win = false;
     }
 #endif
 
 #ifdef LOSS
     if (lose == true)
     {
-        while (i != 5) // loop forever, blinking the LED
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, false);
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, false);
+        
+        while (1) // loop forever, blinking the LED
         {
-            HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+            HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_8);
+            HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
             HAL_Delay(500); // 250 milliseconds == 1/4 second
-            i++;
         }
-        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-        win = false;
     }
 #endif
 
