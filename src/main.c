@@ -13,8 +13,8 @@
  #define COMPUTER_WRENCHES
  #define LIGHT_SCHEDULER
  #define ATT_DEF_MODE
-// #define VICTORY
-// #define LOSS
+ #define VICTORY
+ #define LOSS
 // #define TIME_RAND
 // #define KEYPAD
 // #define KEYPAD_1
@@ -151,7 +151,7 @@ int main(void)
     // Turn on the LED five seconds after reset, and turn it off again five seconds later.
 
     while (blink == true) {
-        HAL_DELAY(1500);
+        HAL_Delay(1500);
         HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);   // turn on LED
         HAL_Delay(3000);
         HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, true);  // turn off LED
@@ -270,7 +270,7 @@ int main(void)
 
 #ifdef LOSS
     if (lose == true) {
-        lose = true;
+        lose= true;
         while (i != 5) // loop forever, blinking the LED
         {
             HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
