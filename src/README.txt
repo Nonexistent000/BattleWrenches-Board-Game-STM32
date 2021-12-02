@@ -1,9 +1,28 @@
-main.c contains sample code.
-ece198.c contains library functions.
-ece198.h is a header file giving prototypes definitions for the functions.
+PROJECT GROUP 100
 
-In the main.c file, you'll find a lot of sample code. We use conditional compilation
-to select which sample is being used. Simply uncomment one (and only one) of the #define
-statements at the top to compile the corresponding demo.
+========== PROJECT INFORMATION ===========
+This is the code for the game BattleWrenches.
+Coded by Group 100 for SW4G Inc.'s arcade bar at uWaterloo Shopping Mall.
 
-Feel free to use and modify any of the code you find here.
+========== INSTRUCTIONS FOR PLAYING ==========
+- STARTING PHASE:
+    To begin the game, press the BLUE button on the Arduino Board.
+    Wait for the green LED to blink 3 times, then press 8 different buttons on the
+    jumper wire keypad to place your 8 wrenches.
+    After placing your 8 wrenches, the computer will place its own, then the red LED will flash.
+- PLAYING PHASE:
+    If the blue LED is on, it is the player's turn:
+    Press one of the buttons on the directly connected keypad to attack the computer.
+        -> If your attack hits one of the wrenches, the green light will flash.
+        -> If your attack misses, the yellow light will flash.
+    If the red LED is on, the computer will attack:
+        -> If its attack hits one of your wrenches, the green light will also flash.
+        -> If its attack misses, the yellow light will flash.
+    Not that during your turn, if you press a button that you've already pressed,
+    the input is ignored and the game will wait for a valid input.
+- WINNING/LOSING PHASE:
+    If the player wins the game, the blue and green LEDs will continuously blink until the game is reset.
+    If the computer wins the game, the red and yellow LEDs will continuously blink until the  game is reset.
+
+========== HARDWARE INFORFMATION ==========
+TBW
