@@ -1,10 +1,10 @@
 PROJECT GROUP 100
 
-========== PROJECT INFORMATION ===========
+========== PROJECT INFORMATION ==============
 This is the code for the game BattleWrenches.
 Coded by Group 100 for SW4G Inc.'s arcade bar at uWaterloo Shopping Mall.
 
-========== INSTRUCTIONS FOR PLAYING ==========
+========== INSTRUCTIONS FOR PLAYING =========
 - STARTING PHASE:
     To begin the game, press the BLUE button on the Arduino Board.
     Wait for the green LED to blink 3 times, then press 8 different buttons on the
@@ -18,11 +18,11 @@ Coded by Group 100 for SW4G Inc.'s arcade bar at uWaterloo Shopping Mall.
     If the red LED is on, the computer will attack:
         -> If its attack hits one of your wrenches, the green light will also flash.
         -> If its attack misses, the yellow light will flash.
-    Not that during your turn, if you press a button that you've already pressed,
-    the input is ignored and the game will wait for a valid input.
 - WINNING/LOSING PHASE:
     If the player wins the game, the blue and green LEDs will continuously blink until the game is reset.
     If the computer wins the game, the red and yellow LEDs will continuously blink until the  game is reset.
 
 ========== HARDWARE INFORFMATION ==========
-TBW
+To Be Configured by the Meme Gods
+
+================== Demo ===================
